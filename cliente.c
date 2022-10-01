@@ -21,16 +21,38 @@ int open_connection(int port)
     return sockfd;
 }
 
-payload_t get_line(int sockfd, int index)
+payload_t send_(int sockfd, payload_t payload)
 {
-    payload_t request = { .operation = 1 };
-    write(sockfd, &request, sizeof(request));
-    read(sockfd, &request, sizeof(request));
-    return request;
+    write(sockfd, &payload, sizeof(payload));
+    read(sockfd, &payload, sizeof(payload));
+    return payload;
+}
+
+payload_t parse_input(char input[1024])
+{
+    char *content = strtok(input, ":");
+    content = strtok(NULL, ":");
+    char op[4];
+    char number[5];
+    strncpy(op, input, 3);
+    strncpy(number, strtok(&input[3], ":"), 4);
+    
+    payload_t payload = {
+        .body = {
+            .line = strtol(number, '\0', 10),
+        }
+    };
+    strcpy(payload.operation, op);
+    strcpy(payload.body.content, content);
+    return payload;
 }
 
 int main()
 {
+    char input[1024];
+    scanf("%s", input);
+    payload_t request = parse_input(input);
+    
     int sockfd = open_connection(9734);
     
     if(sockfd == -1) {
@@ -38,8 +60,8 @@ int main()
         exit(1);
     }
     
-    payload_t a = get_line(sockfd, 0);
-    printf("%s\n", a.body);
+    payload_t response = send_(sockfd, request);
+    printf("%s\n", response.body.content);
     
     close(sockfd);
     exit(0);

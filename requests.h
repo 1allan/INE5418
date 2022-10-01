@@ -4,8 +4,13 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+typedef struct body {
+    int line;
+    char content[2048];
+} body_t;
+
 typedef struct payload {
-    uint32_t operation;
+    char operation[4];
     bool error;
-    char body[2048];
+    body_t body;
 } payload_t;

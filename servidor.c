@@ -44,8 +44,12 @@ int main()
 		);
 		
 		read(client_sockfd, &request, sizeof(request));
-		printf("operation: %d\n", request.operation);
-		strcpy(request.body, "abluble");
+		
+		printf("operation: %s\n", request.operation);
+		printf("line: %d\n", request.body.line);
+		printf("content: %s\n", request.body.content);
+		
+		strcpy(request.body.content, "abluble");
 		write(client_sockfd, &request, sizeof(request));
 		
 		close(client_sockfd);
