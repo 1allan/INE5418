@@ -1,5 +1,7 @@
 *
 !*.*
+*.txt
+*.tmp
 *.out
 settings.json
 out/*
