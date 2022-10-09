@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <string.h>
 #include "requests.h"
+#include "file.c"
 
 int open_server_socket(int port, int max_connections)
 {
@@ -31,7 +32,7 @@ int main()
 	int client_len;
 	payload_t request;
 	
-	int server_sockfd = open_server_socket(9734, 10000);
+	int server_sockfd = open_server_socket(9734, 100000);
 
 	while(1) {
 		printf("[%d] server waiting\n", getpid());
@@ -48,8 +49,14 @@ int main()
 		printf("operation: %s\n", request.operation);
 		printf("line: %d\n", request.body.line);
 		printf("content: %s\n", request.body.content);
+		printf("%d", strcmp(request.operation, "put"));
 		
-		strcpy(request.body.content, "abluble");
+		if (strcmp(request.operation, "put") == 0) {
+			put(request.body.line, request.body.content);
+		} else if (strcmp(request.operation, "get") == 0) {
+			get(request.body.line, request.body.content);
+		}
+		
 		write(client_sockfd, &request, sizeof(request));
 		
 		close(client_sockfd);

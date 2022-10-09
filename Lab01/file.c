@@ -1,48 +1,65 @@
+#include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
 #include <string.h>
 
-typedef struct Line {
-    int number;
-    char content[1024];
-    struct Line *next;
-} line_t;
+#define BUFFER_SIZE 1000
+#define FILE_NAME "file.txt"
+#define T_FILE_NAME "file.tmp"
 
-line_t* search(int number, line_t* file)
+int get(int line_number, char *s)
 {
-    line_t *current = file;
-    while (current != NULL) {
-        if (current->number != number) {
-            current = current->next;
-        } else {
-            return current;
+    char path[] = FILE_NAME;
+    char buffer[BUFFER_SIZE];
+
+    FILE *file = fopen(path, "r");
+
+    if (file == NULL) {
+        return 0;
+    }
+
+    int curr_line = 0;
+    while (fgets(buffer, BUFFER_SIZE, file) != NULL) {
+        if (++curr_line == line_number) {
+            strncpy(s, buffer, BUFFER_SIZE);
+            break;
         }
     }
-    return current;
+    fclose(file);
+    return 1;
 }
 
-void new_line(int number, char* content, line_t* file)
+int put(int line, char *content)
 {
-    line_t new = { .number = number, .content = content };
-    file->next = &new;
-}
+    char path[] = FILE_NAME;
+    char buffer[BUFFER_SIZE];
 
-void update_line(int number, char* new_content, line_t* file)
-{
-    line_t *line = search(number, file);
-    if (line == NULL) {
-        new_line(number, new_content, file);
-    } else {
-        strcpy(line->content, new_content);
+    FILE *file = fopen(path, "r");
+    FILE *temp = fopen(T_FILE_NAME, "w");
+
+    if (file == NULL || temp == NULL) {
+        return 0;
     }
-}
 
-int count_lines(line_t* file)
-{
-    int count = 0;
-    line_t *current = file;
-    while (current != NULL) {
-        ++count;
+    int curr_line = 0;
+    char *cursor = fgets(buffer, BUFFER_SIZE, file);
+    while (curr_line <= line || cursor != NULL) {
+        if (++curr_line != line) {
+            if (cursor == NULL) {
+                fputs("\n", temp);
+            } else {
+                fputs(buffer, temp);
+            }
+        } else {
+            fputs(content, temp);
+            fputs("\n", temp); // off-by-one goes brrrrr
+        }
+        cursor = fgets(buffer, BUFFER_SIZE, file);
     }
-    return count;
+
+    fclose(file);
+    fclose(temp);
+    remove(path);
+    rename(T_FILE_NAME, path);
+
+    return 1;
 }
