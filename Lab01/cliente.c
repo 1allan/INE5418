@@ -49,20 +49,24 @@ payload_t parse_input(char input[1024])
 
 int main()
 {
-    char input[1024];
-    scanf("%s", input);
-    payload_t request = parse_input(input);
-    
     int sockfd = open_connection(9734);
-    
     if(sockfd == -1) {
         perror("!!!connection failed!!!\n");
         exit(1);
     }
-    
-    payload_t response = send_(sockfd, request);
-    printf("%s\n", response.body.content);
-    
+
+    char input[1024];
+    while (1) {
+        printf("> ");
+        scanf("%s", input);
+        payload_t request = parse_input(input);
+        payload_t response = send_(sockfd, request);
+        printf("%s\n", response.body.content);
+        if (strcmp(request.operation, "exi") == 0) {
+            break;
+        }
+    }
     close(sockfd);
+
     exit(0);
 }
