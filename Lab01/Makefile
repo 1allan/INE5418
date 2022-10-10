@@ -1,14 +1,14 @@
 server:
-	gcc ./servidor.c -o ./out/s1_bingus
-	./out/s1_bingus
+	gcc ./servidor.c -o ./out/s_bingus
+	./out/s_bingus
 
 client:
-	gcc ./cliente.c -o ./out/c1_bingus
-	./out/c1_bingus
+	gcc ./cliente.c -o ./out/c_bingus
+	./out/c_bingus
 
 stop:
-	pkill s1_bingus
-	pkill c1_bingus
+	pkill s_bingus
+	pkill c_bingus
 	rm -f ./server_socket
 
 rebuild: stop server

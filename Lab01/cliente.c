@@ -13,7 +13,7 @@ int open_connection(int port)
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in address = {
         .sin_family = AF_INET,
-        .sin_addr = {.s_addr = inet_addr("192.168.1.178")},
+        .sin_addr = {.s_addr = inet_addr("127.0.0.1")},
         .sin_port = htons(port)
     };
     int result = connect(sockfd, (struct sockaddr *)&address, sizeof(address));
@@ -30,20 +30,22 @@ payload_t send_(int sockfd, payload_t payload)
 
 payload_t parse_input(char input[1024])
 {
-    char *content = strtok(input, ":");
-    content = strtok(NULL, ":");
     char op[4];
     char number[5];
+    char *content = strtok(input, ":");
     strncpy(op, input, 3);
-    strncpy(number, strtok(&input[3], ":"), 4);
+    content = strtok(NULL, ":");
+    strncpy(number, strtok(&input[3], ":"), 3);
     
     payload_t payload = {
         .body = {
             .line = strtol(number, '\0', 10),
         }
     };
-    strcpy(payload.operation, op);
-    strcpy(payload.body.content, content);
+    strncpy(payload.operation, op, 3);
+    if (content != NULL) {
+        strcpy(payload.body.content, content);
+    }
     return payload;
 }
 

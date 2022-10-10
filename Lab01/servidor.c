@@ -31,9 +31,9 @@ int open_server_socket(int port, int max_connections)
 void log_request(payload_t *request)
 {
 	pthread_t id = pthread_self();
-	printf("[%ld] Operation: %s\n", id, request->operation);
+	printf("\n[%ld] Operation: %s\n", id, request->operation);
 	printf("[%ld] Line: %d\n", id, request->body.line);
-	printf("[%ld] Content: %s\n", id, request->body.content);
+	printf("[%ld] Content: %s\n\n", id, request->body.content);
 }
 
 void* handle_request(void *args)
@@ -53,8 +53,8 @@ void* handle_request(void *args)
 		} else if (strcmp(request.operation, "get") == 0) {
 			get(request.body.line, request.body.content);
 		} else {
-			close(socket);
 			write(socket, &request, sizeof(request));
+			close(socket);
 			break;
 		}
 		write(socket, &request, sizeof(request));
