@@ -8,7 +8,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <string.h>
+#include <pthread.h>
 #include "requests.h"
+#include "file.c"
+
+pthread_mutex_t lock;
 
 int open_server_socket(int port, int max_connections)
 {
@@ -24,34 +28,62 @@ int open_server_socket(int port, int max_connections)
 	return socket_fd;
 }
 
+void log_request(payload_t *request)
+{
+	pthread_t id = pthread_self();
+	printf("\n[%ld] Operation: %s\n", id, request->operation);
+	printf("[%ld] Line: %d\n", id, request->body.line);
+	printf("[%ld] Content: %s\n\n", id, request->body.content);
+}
+
+void* handle_request(void *args)
+{
+	socklen_t socket = *((socklen_t*)args);
+	payload_t request;
+
+	while (1) {
+		read(socket, &request, sizeof(request));
+
+		log_request(&request);
+
+		if (strcmp(request.operation, "put") == 0) {
+			pthread_mutex_lock(&lock);
+			put(request.body.line, request.body.content);
+			pthread_mutex_unlock(&lock);
+		} else if (strcmp(request.operation, "get") == 0) {
+			get(request.body.line, request.body.content);
+		} else {
+			write(socket, &request, sizeof(request));
+			close(socket);
+			break;
+		}
+		write(socket, &request, sizeof(request));
+	}
+	return NULL;
+}
+
 int main()
 {
 	struct sockaddr_in client_address;
 	int client_sockfd;
-	int client_len;
-	payload_t request;
-	
-	int server_sockfd = open_server_socket(9734, 10000);
+	socklen_t client_len;
+	pthread_t thread_id;
+
+	int server_sockfd = open_server_socket(9734, 100000);
 
 	while(1) {
 		printf("[%d] server waiting\n", getpid());
-		
+
 		client_len = sizeof(client_address);
 		client_sockfd = accept(
 			server_sockfd,
 			(struct sockaddr *)&client_address,
 			&client_len
 		);
-		
-		read(client_sockfd, &request, sizeof(request));
-		
-		printf("operation: %s\n", request.operation);
-		printf("line: %d\n", request.body.line);
-		printf("content: %s\n", request.body.content);
-		
-		strcpy(request.body.content, "abluble");
-		write(client_sockfd, &request, sizeof(request));
-		
-		close(client_sockfd);
+
+		printf("socket in main: %d\n", client_sockfd);
+
+		pthread_create(&thread_id, NULL, handle_request, (void *) &client_sockfd);
 	}
+    pthread_mutex_destroy(&lock);
 }
