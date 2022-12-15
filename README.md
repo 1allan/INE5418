@@ -1,4 +1,4 @@
-# INE5418 - Computação Distribuida
+# UFSC INE5418 - Computação Distribuida
 
 ## Laboratórios
 
